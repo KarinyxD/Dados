@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -34,18 +35,24 @@ categ_features = [
     'lithium', 'goitre', 'thyroid_surgery', 'I131_treatment'
 ]
 
+# categorias para binário
+cat_to_bin = {
+    'f': 0, 't': 1,
+    'F': 0, 'M': 1
+}
+
 # Definir limites para colunas (remover outliers)
-limits = {
-    'TSH': (0.1, 100),
-    'T3': (0.1, 350),#17.5
-    'TT4': (0.1, 300),
-    'T4U': (0.1, 20),
+y_limits = {
+    'TSH': (0.1, 500),
+    'T3': (0.1, 20),
+    'TT4': (0.1, 400),
+    'T4U': (0.1, 2),
     'FTI': (0.1, 300),
-    'age': (0, 120),
+    'age': (0, 100),
 }
 
 # Carrega o dataset
-df = pd.read_excel("thyroid.xlsx")
+df = pd.read_csv("thyroidDF.csv")
 
 # Limpar valores da coluna target (remover espaços, maiúsculas)
 df = df.dropna(subset=['target'])
@@ -59,17 +66,22 @@ df = df[df['target'].str.contains(pattern, na=False)]
 df['target'] = df['target'].apply(map_target)
 df = df[features + ['target']]
 
+# limitar idade
+df = df[df['age'] < 100]
+
+# changing sex of observations with ('pregnant' == True) & ('sex' == null) to Female
+df['sex'] = np.where((df['sex'].isnull()) & (df['pregnant'] == 't'), 'F', df['sex'])
+
 # Remover linhas com muitos NaNs 
 df = df.dropna(thresh=21)
+
+# Converter categóricas para binário
+#for col in categ_features:
+#    df[col] = df[col].map(cat_to_bin)
+
+print(df.shape)
+print(df.describe())
 print("Classes target:\n", df['target'].value_counts())
-y_limits = {
-    'TSH': (0, 500),
-    'T3': (0, 200),
-    'TT4': (0, 400),
-    'T4U': (0.25, 200),
-    'FTI': (0, 800),
-    'age': (0, 100)
-}
 
 # Definir cores para cada classe do target
 palette = {0: "blue", 1: "red", 2: "green"}  # 0=outros, 1=hypo, 2=hyper

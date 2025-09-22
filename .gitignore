@@ -1,3 +1,11 @@
 *.xlsx
 *.csv
 *.txt
+latex/*
+
+# Exceto:
+!latex/main.tex
+!latex/main.pdf
+!latex/references.bib
+!latex/img/
+!latex/img/**

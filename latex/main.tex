@@ -1,0 +1,386 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[myheadings]{fullpage}
+\DeclareUnicodeCharacter{0301}{\hspace{-1ex}\'{ }}
+% Package for headers 
+%\usepackage{fancyhdr}
+\usepackage{lastpage}
+
+% For figures and stuff
+%\usepackage{graphicx, wrapfig, subcaption, setspace, booktabs}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[protrusion=true, expansion=true]{microtype}
+
+% Change for different font sizes and families
+\usepackage[font=small, labelfont=bf]{caption}
+% \usepackage{fourier}
+
+% Maths
+\usepackage{amsmath,amssymb}
+\usepackage{float}
+\usepackage{graphicx}
+% \usepackage{wrapfig}
+% \usepackage[colorinlistoftodos]{todonotes}
+\usepackage[colorlinks=true, allcolors=blue]{hyperref}
+
+% Bibliography
+\usepackage{biblatex} 
+\addbibresource{references.bib}
+
+%% Language and font encodings
+\usepackage[brazil]{babel}
+\usepackage{csquotes}
+
+\usepackage{booktabs}
+\newcommand{\HRule}[1]{\rule{\linewidth}{#1}}
+
+\setcounter{tocdepth}{5}
+\setcounter{secnumdepth}{5}
+
+%% Sets page size and margins
+\usepackage[a4paper,top=2cm,bottom=1.5cm,left=2cm,right=2cm,marginparwidth=1.5cm]{geometry}
+
+
+
+% Header and footer information
+\setlength\headheight{15pt}
+
+ \setlength {\marginparwidth }{2cm}
+\begin{document}
+
+\date{}
+
+% Do not change anything here except in \LARGE \textbf{This is the title of the essay} 
+% /hline before and after the title makes those horoziontal lines appear, you can change the appearance by changing the 2pt to different sizees
+\title{ \normalsize Universidade Federal de São João del-Rei
+		\\ [1.0cm]
+		% Change to your faculty if needed
+		\includegraphics[width=25mm]{img/ufsjbr_logo.jpg}  \\[.5cm]
+		\normalsize Ciência da Computação \\ [3.5cm]
+		\HRule{2pt} \\
+		\LARGE \textbf{Análise e Classificação de Doenças da Tireoide com XGBoost} %para que quede encerrado en las lineas
+		\HRule{2pt} \\ [0.5cm]
+		\normalsize \today \vspace*{5\baselineskip}}
+		
+\date{}
+
+\author{
+        Relatório de Mineração de Dados \\[0.5cm]
+		Kariny Abrahão (212050013)            \\[1cm]
+		 Professor:        \\
+		 Leonardo Rocha
+		 }
+		 
+\maketitle
+
+\newpage
+
+\tableofcontents
+%\newpage
+
+% \section*{Abstract}
+% Add your own abstract here
+
+% Uncomment the next line if you want keywords/index terms after the abstract. 
+%\textit{\textbf{Keywords}: lorem, ipsum, dolor}
+
+% Bibliography usage
+% Whenever you find any source make sure to get the BibTEX citation. Add it to the references.bib file. To cite the reference, use \cite{TitleOfTheReference}
+
+\section{Introdução}
+
+A glândula tireoide desempenha um papel fundamental na regulação do metabolismo humano por meio da produção dos hormônios triiodotironina (T3) e tiroxina (T4). Alterações no funcionamento dessa glândula podem gerar duas condições clínicas principais: \textbf{hipotireoidismo} e \textbf{hipertireoidismo}.  
+
+O \textbf{hipotireoidismo} ocorre quando há uma produção insuficiente de hormônios tireoidianos, o que pode levar a sintomas como fadiga, ganho de peso, intolerância ao frio e depressão. Já o \textbf{hipertireoidismo} é caracterizado pelo excesso de hormônios tireoidianos, causando perda de peso não intencional, ansiedade, taquicardia e intolerância ao calor. Ambas as condições, quando não diagnosticadas ou tratadas adequadamente, podem comprometer significativamente a qualidade de vida dos pacientes e até gerar complicações mais graves.  
+
+Na prática clínica, o diagnóstico dessas disfunções é realizado principalmente pela análise de exames laboratoriais. O \textbf{TSH (hormônio estimulador da tireoide)} é considerado o marcador mais sensível: níveis elevados de TSH sugerem \textbf{hipotireoidismo}, enquanto níveis suprimidos (muito baixos) indicam \textbf{hipertireoidismo}. Além disso, a dosagem dos hormônios tireoidianos T3 e T4 auxilia na confirmação do quadro: no hipotireoidismo observa-se T4 reduzido, enquanto no hipertireoidismo os níveis de T3 e T4 costumam estar aumentados. Outros índices derivados, como o \textbf{FTI (Free Thyroxine Index)} e o \textbf{T4U (T4 uptake)}, também são utilizados para refinar a interpretação.  
+
+Apesar de bem estabelecidos na prática médica, esses exames nem sempre apresentam cortes claros entre as diferentes condições, havendo sobreposição de valores entre indivíduos saudáveis e doentes. Esse cenário torna o diagnóstico desafiador em alguns casos, principalmente quando existem valores limítrofes ou resultados laboratoriais inconsistentes.  
+
+Nesse contexto, técnicas de \textbf{mineração de dados e aprendizado de máquina} vêm sendo exploradas como ferramentas de apoio ao diagnóstico de doenças da tireoide. Essas técnicas permitem lidar com grandes conjuntos de dados, aplicar estratégias de pré-processamento para tratar inconsistências e treinar modelos de classificação capazes de distinguir entre indivíduos saudáveis, com hipotireoidismo ou com hipertireoidismo.  
+
+O presente trabalho tem como objetivo realizar um estudo de caso utilizando a base de dados \textit{Thyroid Disease Data}, disponível no Kaggle \cite{thyroid-dataset} para responder:
+
+
+% Research Question
+%\HRule{0.5pt}\\
+\par\noindent\rule{\textwidth}{0.4pt}
+\begin{center}
+    \textit{Como técnicas de aprendizado de máquina, em especial o XGBoost, podem auxiliar no diagnóstico automatizado de doenças da tireoide (hipotireoidismo e hipertireoidismo) a partir de exames laboratoriais?}
+\end{center}
+\par\noindent\rule{\textwidth}{0.4pt}
+%\HRule{0.5pt}\\
+
+ 
+\section{Atividades Práticas}
+
+Durante o desenvolvimento deste trabalho prático, foram realizadas as seguintes atividades:
+
+\begin{itemize}
+    \item Pesquisa bibliográfica sobre doenças da tireoide (hipotireoidismo e hipertireoidismo) e revisão de artigos que utilizam aprendizado de máquina aplicado ao diagnóstico médico.
+    \item Seleção e análise inicial dos dados.
+    \item Pré-processamento dos dados, análise exploratória dos dados, tratamento de valores, padronização e balanceamento das classes utilizando \textit{SMOTE}.
+    \item Implementação de modelos de classificação em Python, com ênfase no algoritmo XGBoost.
+    \item Avaliação dos modelos utilizando métricas como acurácia, precisão, recall e f1-score.
+    \item Geração de gráficos e visualizações para análise das importâncias das variáveis no modelo.
+    \item Redação do relatório em \LaTeX, contendo introdução teórica, metodologia, resultados obtidos e considerações finais.
+\end{itemize}
+
+\subsection{Atividade 1 - Pesquisa bibliográfica}
+
+Para fundamentar o pré-processamento e as técnicas de classificação aplicadas neste trabalho, foram utilizadas como referência diversas fontes, entre notebooks e artigos científicos. Em particular:
+
+\begin{itemize}
+  \item Notebooks do Kaggle, como “XGBoost Multi-Class Classification” de EmmanuelFwerr, “Thyroid Disease Detection” de iamArslanKhalid, e “Thyroid Classification” de ZiadAbdelaziz, que fornecem exemplos práticos de análise exploratória de dados (EDA), tratamento de valores ausentes, encoding e avaliação com métricas variadas.
+  \item O artigo “\textit{Enhanced Diagnosis of Thyroid Diseases Through Advanced Machine Learning Methodologies}” (Oture, Iqbal \& Wang, 2025), que compara várias técnicas de ML e DL aplicadas ao mesmo tipo de dados, ressaltando uso de oversampling/undersampling e identificando TSH como biomarcador importante. \cite{oture2025enhanced} 
+\end{itemize}
+
+Essas referências ajudaram a definir escolhas no meu pipeline, como quais variáveis manter, quais métricas observar, como tratar valores ausentes e como balancear classes para evitar viés no modelo.
+
+\subsection{Atividade 2 - Seleção e Análise Exploratória Inicial dos Dados}
+
+A segunda atividade teve como objetivo compreender melhor o conjunto de dados \textit{Thyroid Disease Data}, disponível no Kaggle \cite{thyroid-dataset}, que contém informações clínicas e laboratoriais de pacientes, incluindo variáveis contínuas e categóricas. O dataset possui 9172 registros, quantidade considerada suficiente para a condução de nosso estudo, permitindo a exploração de padrões relevantes e o treinamento de modelos de aprendizado de máquina com validade estatística.
+
+
+O foco dessa etapa foi detalhar cada uma das features, entendendo o significado de seus valores e como elas poderiam impactar os diagnósticos médicos. 
+
+A Tabela \ref{tab:features} apresenta a descrição das colunas do dataset e os tipos de valores que elas contêm.
+A coluna \textbf{target} contém os diagnósticos médicos dos pacientes, que estão detalhados na Tabela \ref{tab:target}.  
+
+Neste estágio, com a ajuda da análise detalhada das features, avaliamos o conjunto de dados e concluímos que ele é suficiente e adequado para o objetivo deste trabalho, que consiste no diagnóstico automatizado de hipotireoidismo e hipertireoidismo.
+
+
+\begin{table}[H]
+\centering
+\caption{Descrição das variáveis do conjunto de dados \textit{Thyroid Disease Data}.}
+\label{tab:features}
+\begin{tabular}{|l|p{10cm}|}
+\hline
+\textbf{Variável} & \textbf{Descrição} \\ \hline
+age & Idade do paciente (inteiro) \\ \hline
+sex & Sexo com o qual o paciente se identifica (string) \\ \hline
+on\_thyroxine & Se o paciente está em uso de tiroxina (booleano) \\ \hline
+query\_on\_thyroxine & Se o paciente acredita estar em uso de tiroxina (booleano) \\ \hline
+on\_antithyroid\_meds & Se o paciente está em uso de medicamentos antitireoidianos (booleano) \\ \hline
+sick & Se o paciente está doente (booleano) \\ \hline
+pregnant & Se o paciente está grávida (booleano) \\ \hline
+thyroid\_surgery & Se o paciente já passou por cirurgia na tireoide (booleano) \\ \hline
+I131\_treatment & Se o paciente está em tratamento com I131 (booleano) \\ \hline
+query\_hypothyroid & Se o paciente acredita ter hipotireoidismo (booleano) \\ \hline
+query\_hyperthyroid & Se o paciente acredita ter hipertireoidismo (booleano) \\ \hline
+lithium & Se o paciente faz uso de lítio (booleano) \\ \hline
+goitre & Se o paciente apresenta bócio (booleano) \\ \hline
+tumor & Se o paciente possui tumor (booleano) \\ \hline
+hypopituitary & Se o paciente apresenta hipopituitarismo (booleano) \\ \hline
+psych & Se o paciente apresenta condição psiquiátrica (booleano) \\ \hline
+TSH\_measured & Se o TSH foi medido no sangue (booleano) \\ \hline
+TSH & Nível de TSH no sangue a partir de exame laboratorial (float) \\ \hline
+T3\_measured & Se o T3 foi medido no sangue (booleano) \\ \hline
+T3 & Nível de T3 no sangue a partir de exame laboratorial (float) \\ \hline
+TT4\_measured & Se o TT4 foi medido no sangue (booleano) \\ \hline
+TT4 & Nível de TT4 no sangue a partir de exame laboratorial (float) \\ \hline
+T4U\_measured & Se o T4U foi medido no sangue (booleano) \\ \hline
+T4U & Nível de T4U no sangue a partir de exame laboratorial (float) \\ \hline
+FTI\_measured & Se o FTI foi medido no sangue (booleano) \\ \hline
+FTI & Nível de FTI no sangue a partir de exame laboratorial (float) \\ \hline
+TBG\_measured & Se o TBG foi medido no sangue (booleano) \\ \hline
+TBG & Nível de TBG no sangue a partir de exame laboratorial (float) \\ \hline
+referral\_source & Fonte de encaminhamento do paciente (string) \\ \hline
+target & Diagnóstico médico (string) \\ \hline
+patient\_id & Identificador único do paciente (string) \\ \hline
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Descrição dos códigos de diagnóstico presentes na coluna \textit{target}.}
+\label{tab:target}
+\begin{tabular}{ll}
+\toprule
+\textbf{Letra} & \textbf{Diagnóstico} \\
+\midrule
+\multicolumn{2}{l}{\textit{Condições de hipertireoidismo}} \\
+A & Hipertireoidismo \\
+B & T3 tóxico \\
+C & Bócio tóxico \\
+D & Tóxico secundário \\
+\midrule
+\multicolumn{2}{l}{\textit{Condições de hipotireoidismo}} \\
+E & Hipotireoidismo \\
+F & Hipotireoidismo primário \\
+G & Hipotireoidismo compensado \\
+H & Hipotireoidismo secundário \\
+\midrule
+\multicolumn{2}{l}{\textit{Proteína de ligação}} \\
+I & Proteína de ligação aumentada \\
+J & Proteína de ligação diminuída \\
+\midrule
+\multicolumn{2}{l}{\textit{Saúde geral}} \\
+K & Doença não tireoidiana concomitante \\
+\midrule
+\multicolumn{2}{l}{\textit{Terapia de reposição}} \\
+L & Consistente com terapia de reposição \\
+M & Sub-reposição \\
+N & Super-reposição \\
+\midrule
+\multicolumn{2}{l}{\textit{Tratamento antitireoidiano}} \\
+O & Medicamentos antitireoidianos \\
+P & Tratamento com I131 \\
+Q & Cirurgia \\
+\midrule
+\multicolumn{2}{l}{\textit{Diversos}} \\
+R & Resultados de exames discordantes \\
+S & TBG elevado \\
+T & Hormônios tireoidianos elevados \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Atividade 3 - Pré-processamento, Balanceamento dos Dados e Análise Exploratória}
+
+Após a análise inicial, iniciou-se o pré-processamento dos dados, etapa fundamental para garantir que o modelo de aprendizado de máquina pudesse ser treinado de forma eficaz. As ações realizadas incluíram:
+
+\subsubsection{Remoção de colunas redundantes e irrelevantes}
+
+O primeiro passo no pré-processamento foi analisar a relevância de cada coluna do dataset. Colunas do tipo \texttt*\_measured foram removidas, pois indicavam apenas se um exame havia sido realizado e não forneciam informação adicional relevante para o modelo. A coluna \texttt{patient\_id}, por se tratar de um identificador único, também foi descartada por não possuir utilidade preditiva. Da mesma forma, a coluna \texttt{referral\_source} foi removida, por não agregar valor significativo na previsão do diagnóstico. Por fim, a coluna \texttt{TBG} foi excluída, uma vez que apresentava uma quantidade extremamente elevada de valores nulos (8823 de 9172, aproximadamente 96\%) e não é considerada fundamental para os diagnósticos de hipotireoidismo ou hipertireoidismo.
+
+Essas remoções simplificaram o dataset, reduziram a complexidade do modelo e eliminaram colunas que poderiam introduzir ruído ou viés desnecessário.
+
+\subsubsection{Limpeza e padronização da variável target}
+
+Posteriormente, iniciamos a exploração e limpeza da variável \textbf{target}, que representa o alvo do modelo. Primeiramente, foram removidos espaços em branco e todas as letras foram padronizadas para maiúsculas, evitando erros ou perda de informação.  
+
+Em seguida, filtramos apenas os diagnósticos relevantes para o estudo: as letras que representam o hipertireoidismo (A, B, C, D), o hipotireoidismo (E, F, G, H), e os casos negativos, representados pelo caractere "\texttt{-}". Todas as demais linhas contendo outros diagnósticos foram removidas, a fim de evitar ruídos e possíveis vieses no modelo.  
+
+Por fim, a coluna \textbf{target} foi mapeada numericamente: 0 para os casos negativos, 1 para o hipotireoidismo e 2 para o hipertireoidismo, tornando-a adequada para o treinamento do modelo de classificação.
+
+
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=\textwidth]{img/your_image.png}
+%     \caption{Model Architecture}
+%     \label{fig:model}
+% \end{figure}
+
+% Quisque volutpat sagittis nisl non euismod. Nulla eu dolor justo. Pellentesque erat quam, vehicula et ultrices quis, interdum in libero. Donec at tellus et sem accumsan porta non dapibus nunc. Nulla faucibus nulla ut dolor tincidunt vestibulum. Pellentesque in commodo enim. Vestibulum feugiat, lorem quis vehicula iaculis, mauris tellus faucibus metus, volutpat semper metus sapien vitae ipsum. \ref{fig:Confidence_1}. 
+
+% \begin{figure}[H]
+%     \centering
+%     \includegraphics[width=\textwidth]{img/plot.png}
+%     \caption{Some plot}
+%     \label{fig:Confidence_1}
+% \end{figure}
+
+
+\section{Desafios}
+
+% Zombie ipsum reversus ab viral inferno, nam rick grimes malum cerebro. De carne lumbering animata corpora quaeritis. Summus brains sit, morbo vel 
+
+\section{Resultados}
+
+
+% Zombie ipsum reversus ab viral inferno, nam rick grimes malum cerebro. De carne lumbering animata corpora quaeritis. Summus brains sit, morbo vel 
+
+% Mention constraints, other challenges
+
+% Zombie ipsum reversus ab viral inferno, nam rick grimes malum cerebro. De carne lumbering animata corpora quaeritis. Summus brains sit, morbo vel maleficia? De apocalypsi gorger omero undead survivor dictum mauris.
+
+% Plots plots plots
+% All plots taken from overleaf pgfplots package page
+% The ROC-AUC curves are also plotted for each type of blahblah- blahblah1 (fig \ref{fig:Bad_Positioning}), blahblah2 (fig \ref{fig:Bad_Intensity}), blahblah3 (fig \ref{fig:Wrong_Orientation}), blahblah4 (fig \ref{fig:Unusual}).
+
+% \begin{figure}[H]
+%   \centering
+%   \begin{minipage}[b]{0.4\textwidth}
+%     \includegraphics[width=\textwidth]{img/plot.png}
+%     \caption{ROC Curve: Random Plot 2}
+%     \label{fig:Bad_Intensity}
+%   \end{minipage}
+%   \hfill
+%   \begin{minipage}[b]{0.4\textwidth}
+%     \includegraphics[width=\textwidth]{img/plot2.png}
+%     \caption{ROC Curve: Random Plot 2}
+%     \label{fig:Bad_Positioning}
+%   \end{minipage}
+% \end{figure}
+
+
+% \begin{figure}[H]
+%   \centering
+%   \begin{minipage}[b]{0.4\textwidth}
+%     \includegraphics[width=\textwidth]{img/plot3.png}
+%     \caption{ROC Curve: Random Plot 2}
+%     \label{fig:Wrong_Orientation}
+%   \end{minipage}
+%   \hfill
+%   \begin{minipage}[b]{0.4\textwidth}
+%     \includegraphics[width=\textwidth]{img/plot4.png}
+%     \caption{ROC Curve: Random Plot 2}
+%     \label{fig:Unusual}
+%   \end{minipage}
+% \end{figure}
+
+
+
+
+
+\section{Conclusão}
+
+% Say what you did in the internship. Lollipop soufflé gummi bears lemon drops cake marzipan. Danish biscuit biscuit donut bonbon pastry jelly apple pie. Candy 
+
+\section{Reflection}
+
+% % Discussion about the internship as well as your performance and what you learnt from the experience. 
+
+% Icing halvah sugar plum donut lollipop soufflé pastry donut. Chocolate cake donut sweet brownie sugar plum carrot cake bear claw lollipop chocolate. Jelly-o candy canes bonbon donut bear claw chocolate. Cheesecake cotton candy cookie candy canes cake apple pie. Candy canes carrot cake marshmallow chocolate shortbread macaroon cupcake candy canes. Jelly-o toffee dragée sugar plum tootsie roll powder. Apple pie brownie soufflé pastry jelly-o. Pastry macaroon gingerbread candy jujubes powder cake ice cream donut. Muffin jelly-o oat cake chocolate cake gingerbread bear claw marzipan jelly-o candy. Ice cream liquorice fruitcake liquorice pie dragée chocolate bar croissant apple pie. Powder cake dragée danish danish jujubes gingerbread. Biscuit tiramisu tart bear claw sweet pastry brownie chocolate cake croissant. Muffin jujubes sugar plum danish cotton candy sweet roll gummi bears carrot cake tootsie roll.
+
+\section{Acknowledgements}
+
+% I would like to thank my internship supervisor at External Company, FirstName LastName, for closely working with me and supervising me, hosting regular meetings (twice a week) with me to see my progress. I would like to thank FirstName2 LastName2, External Company, for helping out with my work. I would also like to thank FirstName3 LastName3, and FirstName4 LastName4, who were involved in the interviews and selection process for the internship position, for giving me an opportunity to work in External Company. I would like to thank First LastName, from Radboud University, for acting as my internal assessor for this internship. I would also like to thank BlahBlah LastName, the internship coordinator for the Artificial Intelligence Masters Course, for helping me find the internal assessor, and also helping me with all the documentation and administration part of the internship. Finally, I would like to thank Radboud University, for giving me an opportunity to work in an external company environment as a part of my Master's course. 
+
+
+% %****** Extra package work if needed
+% % To add math, use
+% %\begin{equation}
+%  %Helpful links    https://www.overleaf.com/learn/latex/Mathematical_expressions
+% %\end{equation}
+
+% %To add hyperlinks, use 
+% %For further references see \href{http://www.overleaf.com}{Something Linky} or go to the next url: \url{http://www.overleaf.com}
+
+% % It's also possible to link directly any word or \hyperlink{thesentence}{any sentence} in you document.
+
+% % Tables 
+
+% % \begin{table}[h!]
+% % \centering
+% %  \begin{tabular}{||c c c c||} 
+% %  \hline
+% %  Col1 & Col2 & Col2 & Col3 \\ [0.5ex] 
+% %  \hline\hline
+% %  1 & 6 & 87837 & 787 \\ 
+% %  2 & 7 & 78 & 5415 \\
+% %  3 & 545 & 778 & 7507 \\
+% %  4 & 545 & 18744 & 7560 \\
+% %  5 & 88 & 788 & 6344 \\ [1ex] 
+% %  \hline
+% %  \end{tabular}
+% % \end{table}
+
+% % Images
+
+% % upload your images to the img folder. To print them in the document, uncomment the following
+% % \begin{figure}[h]
+% %     \centering
+% %     \includegraphics[width=0.25\textwidth]{/img/YourImageTitle}
+% %     \caption{a nice plot}
+% %     \label{fig:mesh1}
+% % \end{figure}
+
+% % As you can see in the figure \ref{fig:mesh1}, the 
+% % function grows near 0. Also, in the page \pageref{fig:mesh1} 
+% % is the same example.
+\newpage
+\printbibliography
+\end{document}

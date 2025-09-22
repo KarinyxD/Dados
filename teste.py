@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from xgboost import XGBClassifier
@@ -57,16 +58,16 @@ cat_to_bin = {
 
 # Definir limites para colunas (remover outliers)
 limits = {
-    'TSH': (0.1, 100),
-    'T3': (0.1, 350),#17.5
-    'TT4': (0.1, 300),
-    'T4U': (0.1, 20),
+    'TSH': (0.1, 500),
+    'T3': (0.1, 20),
+    'TT4': (0.1, 400),
+    'T4U': (0.1, 2),
     'FTI': (0.1, 300),
     'age': (0, 100),
 }
 
 # Carrega o dataset
-df = pd.read_excel("thyroid.xlsx")
+df = pd.read_csv("thyroidDF.csv")
 
 # Limpar valores da coluna target (remover espaços, maiúsculas)
 df = df.dropna(subset=['target'])
@@ -83,6 +84,9 @@ df = df[features + ['target']]
 # limitar idade
 df = df[df['age'] < 100]
 
+# changing sex of observations with ('pregnant' == True) & ('sex' == null) to Female
+df['sex'] = np.where((df['sex'].isnull()) & (df['pregnant'] == 't'), 'F', df['sex'])
+
 # Remover linhas com muitos NaNs 
 df = df.dropna(thresh=21)
 
@@ -92,6 +96,7 @@ df = df.dropna(thresh=21)
 
 print(df.shape)
 print("Classes target:\n", df['target'].value_counts())
+
 
 ###################################################################
 #df.info()
@@ -114,10 +119,10 @@ y = df['target']
 X = pd.get_dummies(X, columns=categ_features, drop_first=True)
 
 # Split original 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=90, stratify=y)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, stratify=y)
 
 # 2. Aplicar SMOTE apenas no treino
-smote = SMOTE(random_state=42)
+smote = SMOTE()
 X_train_resampled, y_train_resampled = smote.fit_resample(X_train, y_train)
 
 # xgb_clf = XGBClassifier(max_depth=3)
@@ -137,6 +142,21 @@ xgb_clf.fit(
     verbose=0,
     eval_set=[(X_train_resampled, y_train_resampled), (X_test, y_test)]
 )
+importance = xgb_clf.feature_importances_
+
+# Colocar em um DataFrame para facilitar visualização
+feat_importance = pd.DataFrame({
+    'Feature': X_train.columns,
+    'Importance': importance
+}).sort_values(by='Importance', ascending=False)
+
+# ---------------------- Plot importância ------------------ #
+plt.figure(figsize=(10,6))
+plt.barh(feat_importance['Feature'], feat_importance['Importance'], color='skyblue')
+plt.gca().invert_yaxis()  # inverte para mostrar a mais importante no topo
+plt.xlabel("Importance")
+plt.title("XGBoost Feature Importance")
+plt.show()
 
 # ------------------ Plots de evolução ------------------ #
 results = xgb_clf.evals_result()
