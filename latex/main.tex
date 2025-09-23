@@ -1,13 +1,13 @@
 \documentclass[11pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[myheadings]{fullpage}
-\DeclareUnicodeCharacter{0301}{\hspace{-1ex}\'{ }}
+% \DeclareUnicodeCharacter{0301}{\hspace{-1ex}\'{ }}
 % Package for headers 
-%\usepackage{fancyhdr}
 \usepackage{lastpage}
 
 % For figures and stuff
 %\usepackage{graphicx, wrapfig, subcaption, setspace, booktabs}
+\usepackage{subcaption}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
 \usepackage[protrusion=true, expansion=true]{microtype}
@@ -20,7 +20,6 @@
 \usepackage{amsmath,amssymb}
 \usepackage{float}
 \usepackage{graphicx}
-% \usepackage{wrapfig}
 % \usepackage[colorinlistoftodos]{todonotes}
 \usepackage[colorlinks=true, allcolors=blue]{hyperref}
 
@@ -40,8 +39,6 @@
 
 %% Sets page size and margins
 \usepackage[a4paper,top=2cm,bottom=1.5cm,left=2cm,right=2cm,marginparwidth=1.5cm]{geometry}
-
-
 
 % Header and footer information
 \setlength\headheight{15pt}
@@ -77,16 +74,6 @@
 \newpage
 
 \tableofcontents
-%\newpage
-
-% \section*{Abstract}
-% Add your own abstract here
-
-% Uncomment the next line if you want keywords/index terms after the abstract. 
-%\textit{\textbf{Keywords}: lorem, ipsum, dolor}
-
-% Bibliography usage
-% Whenever you find any source make sure to get the BibTEX citation. Add it to the references.bib file. To cite the reference, use \cite{TitleOfTheReference}
 
 \section{Introdução}
 
@@ -120,12 +107,18 @@ Durante o desenvolvimento deste trabalho prático, foram realizadas as seguintes
 \begin{itemize}
     \item Pesquisa bibliográfica sobre doenças da tireoide (hipotireoidismo e hipertireoidismo) e revisão de artigos que utilizam aprendizado de máquina aplicado ao diagnóstico médico.
     \item Seleção e análise inicial dos dados.
-    \item Pré-processamento dos dados, análise exploratória dos dados, tratamento de valores, padronização e balanceamento das classes utilizando \textit{SMOTE}.
-    \item Implementação de modelos de classificação em Python, com ênfase no algoritmo XGBoost.
-    \item Avaliação dos modelos utilizando métricas como acurácia, precisão, recall e f1-score.
+    \item Pré-processamento dos dados, análise exploratória dos dados, tratamento de valores, padronização e balanceamento das classes utilizando oversampling \textit{(SMOTE)}.
+    \item Implementação do algoritmo XGBoost.
+    \item Avaliação do modelo utilizando métricas como acurácia, precisão, recall e f1-score.
     \item Geração de gráficos e visualizações para análise das importâncias das variáveis no modelo.
-    \item Redação do relatório em \LaTeX, contendo introdução teórica, metodologia, resultados obtidos e considerações finais.
 \end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{img/fluxogram.png}
+    \caption{Fluxograma resumido das atividades.}
+    \label{fig:fluxograma_atividades}
+\end{figure}
 
 \subsection{Atividade 1 - Pesquisa bibliográfica}
 
@@ -255,132 +248,202 @@ Em seguida, filtramos apenas os diagnósticos relevantes para o estudo: as letra
 
 Por fim, a coluna \textbf{target} foi mapeada numericamente: 0 para os casos negativos, 1 para o hipotireoidismo e 2 para o hipertireoidismo, tornando-a adequada para o treinamento do modelo de classificação.
 
+\subsubsection{Tratamento de valores ausentes}
 
-% \begin{figure}[H]
-%     \centering
-%     \includegraphics[width=\textwidth]{img/your_image.png}
-%     \caption{Model Architecture}
-%     \label{fig:model}
-% \end{figure}
+Inicialmente, foram preenchidos alguns valores ausentes na coluna \texttt{sex}. Para os casos em que o sexo estava nulo, verificou-se a coluna \texttt{pregnant}: quando o valor era verdadeiro, atribuiu-se diretamente o sexo feminino, já que a condição de gravidez não seria possível para indivíduos do sexo masculino.
 
-% Quisque volutpat sagittis nisl non euismod. Nulla eu dolor justo. Pellentesque erat quam, vehicula et ultrices quis, interdum in libero. Donec at tellus et sem accumsan porta non dapibus nunc. Nulla faucibus nulla ut dolor tincidunt vestibulum. Pellentesque in commodo enim. Vestibulum feugiat, lorem quis vehicula iaculis, mauris tellus faucibus metus, volutpat semper metus sapien vitae ipsum. \ref{fig:Confidence_1}. 
+Além disso, utilizando o parâmetro \texttt{thresh=18} na função \texttt{dropna}, de forma a remover linhas que continham mais de quatro valores ausentes (dado que havia um total de 22 atributos, incluindo a variável alvo). Esse procedimento eliminou instâncias incompletas que poderiam comprometer a qualidade do modelo, ao mesmo tempo este procedimento resultou indiretamente em uma redução da classe majoritária (0), funcionando de forma semelhante a uma técnica de \textit{undersampling} não intencional, o que contribuiu para melhorar o balanceamento do conjunto de dados.
 
-% \begin{figure}[H]
-%     \centering
-%     \includegraphics[width=\textwidth]{img/plot.png}
-%     \caption{Some plot}
-%     \label{fig:Confidence_1}
-% \end{figure}
+Na Figura~\ref{fig:pie-before-after}, observa-se a distribuição das classes antes e após a aplicação do filtro de valores nulos. Nota-se a queda da classe negativa (0) e a elevação proporcional das classes de hipotireoidismo (1) e hipertireoidismo (2), contribuindo para um balanceamento mais adequado do conjunto de dados.
 
+\begin{figure}[H]
+    \centering
+    \subfloat[Distribuição antes do filtro (thresh=18)]{\includegraphics[width=0.50\textwidth]{img/pie_before.png}}
+    \hfill
+    \subfloat[Distribuição após o filtro (thresh=18)]{\includegraphics[width=0.50\textwidth]{img/pie_after.png}}
+    \caption{Distribuição das classes antes e depois da aplicação do filtro de valores nulos.}
+    \label{fig:pie-before-after}
+\end{figure}
 
-\section{Desafios}
+\subsubsection{Análise exploratória e remoção de outliers}
 
-% Zombie ipsum reversus ab viral inferno, nam rick grimes malum cerebro. De carne lumbering animata corpora quaeritis. Summus brains sit, morbo vel 
+Para entender melhor a distribuição das variáveis numéricas em relação ao \textit{target}, foram gerados gráficos de dispersão (\textit{strip plots}) para cada atributo numérico, com cores diferenciando as classes do \textit{target} (0 = outros, 1 = hipotireoidismo, 2 = hipertireoidismo). 
+
+Os gráficos permitiram identificar valores extremos em algumas colunas, o que possibilitou a definição de limites plausíveis para cada variável. Dessa forma, foram impostas restrições nos dados numéricos para remover outliers e evitar que valores atípicos viessem a enviesar o modelo. Os limites aplicados foram:
+
+\begin{itemize}
+    \item \textbf{TSH}: 0 -- 500
+    \item \textbf{T3}: 0 -- 20
+    \item \textbf{TT4}: 0 -- 400
+    \item \textbf{T4U}: 0 -- 2
+    \item \textbf{FTI}: 0 -- 300
+    \item \textbf{Idade}: 0 -- 100 anos
+\end{itemize}
+
+A Figura \ref{fig:stripplots} apresenta os gráficos gerados, onde cada ponto representa um paciente e as cores indicam a classe do \textit{target}. Observa-se que a aplicação desses limites contribuiu para remover valores extremos que poderiam impactar negativamente o desempenho do modelo de classificação.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.0\textwidth]{img/numerical_stripplots.png}
+    \caption{Distribuição das variáveis numéricas em função do \textit{target}, com limites aplicados para remoção de outliers.}
+    \label{fig:stripplots}
+\end{figure}
+
+\subsubsection{Imputação de valores nulos utilizando KNN}
+
+Após a remoção de outliers e a análise das variáveis, foi realizada a imputação dos valores nulos restantes utilizando o método de KNN (\textit{K-Nearest Neighbors}). Para isso, considerou-se os 10 vizinhos mais próximos de cada registro, atribuindo pesos maiores aos vizinhos mais próximos. Esse procedimento permitiu preencher tanto os valores nulos das variáveis numéricas quanto das categóricas, preservando a estrutura dos dados.
+
+Antes da aplicação do KNN, foi necessário transformar as variáveis categóricas, que possuíam valores binários como ``t''/``f'' ou ``0''/``1'', para um formato adequado, garantindo que o algoritmo pudesse processá-las corretamente.
+
+Para analisar o impacto da imputação, foram geradas curvas de distribuição das principais variáveis contínuas (\textbf{TSH}, \textbf{T3}, \textbf{TT4}, \textbf{T4U}, \textbf{FTI}) antes e depois do KNN. As figuras \ref{fig:FTI_distrib} a \ref{fig:T4U_distrib} apresentam essas distribuições. Observa-se que, embora a curva do dado original tenha ficado ligeiramente abaixo da curva após a imputação, o formato geral das distribuições se manteve, indicando que a imputação preservou a característica dos dados sem introduzir distorções significativas.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{img/FTI_distrib.png}
+        \caption{Distribuição da variável FTI.}
+        \label{fig:FTI_distrib}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{img/TT4_distrib.png}
+        \caption{Distribuição da variável TT4.}
+        \label{fig:TT4_distrib}
+    \end{minipage}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{img/TSH_distrib.png}
+        \caption{Distribuição da variável TSH.}
+        \label{fig:TSH_distrib}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{img/T3_distrib.png}
+        \caption{Distribuição da variável T3.}
+        \label{fig:T3_distrib}
+    \end{minipage}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{img/T4U_distrib.png}
+    \caption{Distribuição da variável T4U.}
+    \label{fig:T4U_distrib}
+\end{figure}
+
+\subsubsection{Balanceamento das classes com SMOTE}
+
+Após a divisão inicial dos dados em treino e teste, com 33\% reservados para avaliação, foi aplicado o método \textit{SMOTE (Synthetic Minority Over-sampling Technique)} ao conjunto de treino. A função \texttt{train\_test\_split} do \texttt{scikit-learn} foi utilizada com o parâmetro \texttt{stratify=y} para garantir que a proporção de cada classe fosse mantida em ambos os conjuntos.
+
+O \textit{SMOTE} é uma técnica de oversampling que cria amostras sintéticas das classes minoritárias, de modo a balancear o conjunto de treino e permitir que o modelo aprenda melhor padrões de todas as classes. O parâmetro \texttt{random\_state=44} foi definido para tornar o processo reprodutível.  
+
+\subsubsection{Implementação do XGBoost}
+
+Para a etapa final do estudo de caso, foi implementado um modelo \textit{XGBoost} para classificação dos pacientes em três classes: negativos, hipotireoidismo e hipertireoidismo. Inicialmente, buscou-se otimizar os hiperparâmetros do modelo utilizando \textit{GridSearchCV}, mas os melhores valores foram definidos manualmente como:
+
+\begin{itemize}
+    \item \texttt{colsample\_bytree = 0.7} 
+    \item \texttt{learning\_rate = 0.1} 
+    \item \texttt{max\_depth = 7} 
+    \item \texttt{n\_estimators = 100} 
+    \item \texttt{subsample = 1.0} 
+    \item \texttt{objective = 'multi:softmax'} 
+    \item \texttt{num\_class = 3} 
+    \item \texttt{eval\_metric = ['merror', 'mlogloss']}
+\end{itemize}
+
+Para lidar com o desbalanceamento das classes, foi utilizado o vetor de \textit{sample\_weight}, calculado a partir da função \texttt{compute\_sample\_weight} com o parâmetro \texttt{class\_weight='balanced'}. Esse vetor ajusta o peso de cada amostra, dando maior importância para as classes minoritárias durante o treinamento.
+
+O modelo foi treinado utilizando o conjunto de treino reamostrado pelo SMOTE e avaliado no conjunto de teste original, preservando a distribuição real das classes.  
 
 \section{Resultados}
 
+Após a implementação do modelo XGBoost, foi realizada a avaliação de desempenho e análise da importância das features. O modelo foi treinado utilizando as amostras balanceadas pelo SMOTE e aplicando o \texttt{sample\_weight} para dar maior peso às classes minoritárias.
 
-% Zombie ipsum reversus ab viral inferno, nam rick grimes malum cerebro. De carne lumbering animata corpora quaeritis. Summus brains sit, morbo vel 
+\subsection{Importância das Features}
 
-% Mention constraints, other challenges
+A importância das variáveis foi calculada pelo próprio modelo XGBoost, gerando um ranking que indica quais features mais contribuíram para a predição. Observou-se que, antes da utilização do \texttt{sample\_weight}, a feature de maior importância era o \textbf{FTI}. Após aplicar os pesos para equilibrar as classes, a feature mais importante passou a ser o \textbf{TSH}, alinhando-se melhor com achados reportados na literatura.
 
-% Zombie ipsum reversus ab viral inferno, nam rick grimes malum cerebro. De carne lumbering animata corpora quaeritis. Summus brains sit, morbo vel maleficia? De apocalypsi gorger omero undead survivor dictum mauris.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{img/feature_importance.png}
+    \caption{Importância das features calculada pelo XGBoost.}
+    \label{fig:feature_importance}
+\end{figure}
 
-% Plots plots plots
-% All plots taken from overleaf pgfplots package page
-% The ROC-AUC curves are also plotted for each type of blahblah- blahblah1 (fig \ref{fig:Bad_Positioning}), blahblah2 (fig \ref{fig:Bad_Intensity}), blahblah3 (fig \ref{fig:Wrong_Orientation}), blahblah4 (fig \ref{fig:Unusual}).
+\subsection{Evolução do Treinamento}
 
-% \begin{figure}[H]
-%   \centering
-%   \begin{minipage}[b]{0.4\textwidth}
-%     \includegraphics[width=\textwidth]{img/plot.png}
-%     \caption{ROC Curve: Random Plot 2}
-%     \label{fig:Bad_Intensity}
-%   \end{minipage}
-%   \hfill
-%   \begin{minipage}[b]{0.4\textwidth}
-%     \includegraphics[width=\textwidth]{img/plot2.png}
-%     \caption{ROC Curve: Random Plot 2}
-%     \label{fig:Bad_Positioning}
-%   \end{minipage}
-% \end{figure}
+O desempenho durante o treinamento foi monitorado pelas métricas de logloss e erro de classificação (\texttt{merror}) para o conjunto de treino e teste.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{img/mlogloss.png}
+    \caption{Evolução do \texttt{mlogloss} durante o treinamento do XGBoost.}
+    \label{fig:mlogloss}
+\end{figure}
 
-% \begin{figure}[H]
-%   \centering
-%   \begin{minipage}[b]{0.4\textwidth}
-%     \includegraphics[width=\textwidth]{img/plot3.png}
-%     \caption{ROC Curve: Random Plot 2}
-%     \label{fig:Wrong_Orientation}
-%   \end{minipage}
-%   \hfill
-%   \begin{minipage}[b]{0.4\textwidth}
-%     \includegraphics[width=\textwidth]{img/plot4.png}
-%     \caption{ROC Curve: Random Plot 2}
-%     \label{fig:Unusual}
-%   \end{minipage}
-% \end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{img/merror.png}
+    \caption{Evolução do \texttt{merror} durante o treinamento do XGBoost.}
+    \label{fig:merror}
+\end{figure}
 
+\subsubsection{Métricas de Avaliação Final}
 
+O modelo foi testado no conjunto de teste, apresentando os seguintes resultados:
 
+\begin{itemize}
+    \item \textbf{Accuracy:} 0.97
+    \item \textbf{Balanced Accuracy:} 0.96
+    \item \textbf{Micro F1-score:} 0.97
+    \item \textbf{Macro F1-score:} 0.92
+    \item \textbf{Weighted F1-score:} 0.97
+\end{itemize}
+
+A matriz de confusão e o relatório de classificação mostraram que o modelo conseguiu identificar de forma consistente os casos de hipotireoidismo e hipertireoidismo, mesmo diante do desbalanceamento inicial das classes.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{img/confusion_matrix.png}
+        \caption{Matriz de confusão do modelo XGBoost no conjunto de teste.}
+        \label{fig:confusion_matrix}
+    \end{minipage}%
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{img/classification_report.png}
+        \caption{Relatório de classificação do modelo XGBoost no conjunto de teste.}
+        \label{fig:classification_report}
+    \end{minipage}
+\end{figure}
+
+Em resumo, o modelo XGBoost com ajuste de pesos para as classes minoritárias apresentou resultados satisfatórios para a classificação automatizada das doenças da tireoide, com a importância das features condizente com achados clínicos.
+
+%\section{Desafios}
 
 
 \section{Conclusão}
 
-% Say what you did in the internship. Lollipop soufflé gummi bears lemon drops cake marzipan. Danish biscuit biscuit donut bonbon pastry jelly apple pie. Candy 
+O presente estudo teve como objetivo investigar como técnicas de aprendizado de máquina, em especial o XGBoost, podem auxiliar no diagnóstico automatizado de doenças da tireoide, considerando hipotireoidismo e hipertireoidismo, a partir de exames laboratoriais.
 
-\section{Reflection}
+Durante o desenvolvimento do trabalho, foi possível observar que o conjunto de dados \textit{Thyroid Disease Data} do Kaggle, contendo informações clínicas e laboratoriais de 9.172 pacientes, era suficiente e adequado para treinar um modelo de classificação confiável. Por meio de uma etapa sistemática de pré-processamento, que incluiu limpeza de dados, tratamento de valores nulos, padronização e balanceamento das classes com SMOTE, garantiu-se que o modelo fosse treinado com dados de qualidade e representativos.
 
-% % Discussion about the internship as well as your performance and what you learnt from the experience. 
+A implementação do XGBoost, aliada à busca de hiperparâmetros com GridSearch e ao uso de pesos de amostra (\textit{sample\_weight}) para lidar com o desbalanceamento das classes, permitiu identificar corretamente padrões relevantes nos exames laboratoriais. Observou-se que, após aplicar o \textit{sample\_weight}, a importância das variáveis no modelo passou a refletir melhor os achados clínicos descritos na literatura: o TSH tornou-se a variável mais relevante, alinhando-se ao que é considerado um biomarcador sensível para disfunções tireoidianas.
 
-% Icing halvah sugar plum donut lollipop soufflé pastry donut. Chocolate cake donut sweet brownie sugar plum carrot cake bear claw lollipop chocolate. Jelly-o candy canes bonbon donut bear claw chocolate. Cheesecake cotton candy cookie candy canes cake apple pie. Candy canes carrot cake marshmallow chocolate shortbread macaroon cupcake candy canes. Jelly-o toffee dragée sugar plum tootsie roll powder. Apple pie brownie soufflé pastry jelly-o. Pastry macaroon gingerbread candy jujubes powder cake ice cream donut. Muffin jelly-o oat cake chocolate cake gingerbread bear claw marzipan jelly-o candy. Ice cream liquorice fruitcake liquorice pie dragée chocolate bar croissant apple pie. Powder cake dragée danish danish jujubes gingerbread. Biscuit tiramisu tart bear claw sweet pastry brownie chocolate cake croissant. Muffin jujubes sugar plum danish cotton candy sweet roll gummi bears carrot cake tootsie roll.
+Os resultados obtidos, avaliados por métricas como acurácia, recall, f1-score e análise da matriz de confusão, demonstram que o XGBoost foi capaz de distinguir de forma eficiente entre pacientes saudáveis, hipotireoideos e hipertireoideos. Além disso, a visualização das importâncias das features fornece uma interpretação útil para profissionais de saúde, mostrando quais exames contribuem mais para o diagnóstico automatizado.
 
-\section{Acknowledgements}
+Portanto, conclui-se que técnicas de aprendizado de máquina, especialmente o XGBoost, são ferramentas promissoras para o apoio ao diagnóstico de doenças da tireoide. Elas permitem transformar dados laboratoriais em previsões confiáveis, auxiliando médicos a identificar disfunções tireoidianas de forma mais rápida e objetiva, e potencialmente melhorando o cuidado clínico.
 
-% I would like to thank my internship supervisor at External Company, FirstName LastName, for closely working with me and supervising me, hosting regular meetings (twice a week) with me to see my progress. I would like to thank FirstName2 LastName2, External Company, for helping out with my work. I would also like to thank FirstName3 LastName3, and FirstName4 LastName4, who were involved in the interviews and selection process for the internship position, for giving me an opportunity to work in External Company. I would like to thank First LastName, from Radboud University, for acting as my internal assessor for this internship. I would also like to thank BlahBlah LastName, the internship coordinator for the Artificial Intelligence Masters Course, for helping me find the internal assessor, and also helping me with all the documentation and administration part of the internship. Finally, I would like to thank Radboud University, for giving me an opportunity to work in an external company environment as a part of my Master's course. 
-
-
-% %****** Extra package work if needed
-% % To add math, use
-% %\begin{equation}
-%  %Helpful links    https://www.overleaf.com/learn/latex/Mathematical_expressions
-% %\end{equation}
-
-% %To add hyperlinks, use 
-% %For further references see \href{http://www.overleaf.com}{Something Linky} or go to the next url: \url{http://www.overleaf.com}
-
-% % It's also possible to link directly any word or \hyperlink{thesentence}{any sentence} in you document.
-
-% % Tables 
-
-% % \begin{table}[h!]
-% % \centering
-% %  \begin{tabular}{||c c c c||} 
-% %  \hline
-% %  Col1 & Col2 & Col2 & Col3 \\ [0.5ex] 
-% %  \hline\hline
-% %  1 & 6 & 87837 & 787 \\ 
-% %  2 & 7 & 78 & 5415 \\
-% %  3 & 545 & 778 & 7507 \\
-% %  4 & 545 & 18744 & 7560 \\
-% %  5 & 88 & 788 & 6344 \\ [1ex] 
-% %  \hline
-% %  \end{tabular}
-% % \end{table}
-
-% % Images
-
-% % upload your images to the img folder. To print them in the document, uncomment the following
-% % \begin{figure}[h]
-% %     \centering
-% %     \includegraphics[width=0.25\textwidth]{/img/YourImageTitle}
-% %     \caption{a nice plot}
-% %     \label{fig:mesh1}
-% % \end{figure}
-
-% % As you can see in the figure \ref{fig:mesh1}, the 
-% % function grows near 0. Also, in the page \pageref{fig:mesh1} 
-% % is the same example.
 \newpage
 \printbibliography
 \end{document}
