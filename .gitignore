@@ -1,7 +1,9 @@
 *.xlsx
-*.csv
 *.txt
 latex/*
+decisiontree.py
+decisiontree2.py:w
+
 
 # Exceto:
 !latex/main.tex

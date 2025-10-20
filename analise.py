@@ -43,7 +43,7 @@ cat_to_bin = {
 
 # Definir limites para colunas (remover outliers)
 y_limits = {
-    'TSH': (0.1, 500),
+    'TSH': (0.1, 60),
     'T3': (0.1, 20),
     'TT4': (0.1, 400),
     'T4U': (0.1, 2),

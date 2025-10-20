@@ -32,6 +32,11 @@ def plot_distributions(original_df, imputed_df, num_features):
         plt.ylabel("Frequência", fontsize=20)  # Aumenta o tamanho do rótulo do eixo Y
         plt.legend(fontsize=20)  # Aumenta o tamanho da legenda
         plt.tick_params(axis='both', labelsize=20)  # Aumenta o tamanho dos números nos eixos
+
+        # Ajustar o eixo y para o gráfico de TSH
+        if col == 'TSH':
+            plt.xlim(0, 300)
+
         plt.show()
 
 # Classificador base
@@ -151,7 +156,7 @@ imputer = KNNImputer(n_neighbors=10, weights="distance")
 df_imputed = imputer.fit_transform(df[features])
 df_imputed = pd.DataFrame(df_imputed, columns=features, index=df.index)
 
-#plot_distributions(df, df_imputed, num_features)
+plot_distributions(df, df_imputed, num_features)
 # Atualizar df com as colunas imputadas
 df[features] = df_imputed
 X = df[features]

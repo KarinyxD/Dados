@@ -76,20 +76,14 @@
 \tableofcontents
 
 \section{Introdução}
-
 A glândula tireoide desempenha um papel fundamental na regulação do metabolismo humano por meio da produção dos hormônios triiodotironina (T3) e tiroxina (T4). Alterações no funcionamento dessa glândula podem gerar duas condições clínicas principais: \textbf{hipotireoidismo} e \textbf{hipertireoidismo}.  
-
 O \textbf{hipotireoidismo} ocorre quando há uma produção insuficiente de hormônios tireoidianos, o que pode levar a sintomas como fadiga, ganho de peso, intolerância ao frio e depressão. Já o \textbf{hipertireoidismo} é caracterizado pelo excesso de hormônios tireoidianos, causando perda de peso não intencional, ansiedade, taquicardia e intolerância ao calor. Ambas as condições, quando não diagnosticadas ou tratadas adequadamente, podem comprometer significativamente a qualidade de vida dos pacientes e até gerar complicações mais graves.  
-
 Na prática clínica, o diagnóstico dessas disfunções é realizado principalmente pela análise de exames laboratoriais. O \textbf{TSH (hormônio estimulador da tireoide)} é considerado o marcador mais sensível: níveis elevados de TSH sugerem \textbf{hipotireoidismo}, enquanto níveis suprimidos (muito baixos) indicam \textbf{hipertireoidismo}. Além disso, a dosagem dos hormônios tireoidianos T3 e T4 auxilia na confirmação do quadro: no hipotireoidismo observa-se T4 reduzido, enquanto no hipertireoidismo os níveis de T3 e T4 costumam estar aumentados. Outros índices derivados, como o \textbf{FTI (Free Thyroxine Index)} e o \textbf{T4U (T4 uptake)}, também são utilizados para refinar a interpretação.  
-
 Apesar de bem estabelecidos na prática médica, esses exames nem sempre apresentam cortes claros entre as diferentes condições, havendo sobreposição de valores entre indivíduos saudáveis e doentes. Esse cenário torna o diagnóstico desafiador em alguns casos, principalmente quando existem valores limítrofes ou resultados laboratoriais inconsistentes.  
-
 Nesse contexto, técnicas de \textbf{mineração de dados e aprendizado de máquina} vêm sendo exploradas como ferramentas de apoio ao diagnóstico de doenças da tireoide. Essas técnicas permitem lidar com grandes conjuntos de dados, aplicar estratégias de pré-processamento para tratar inconsistências e treinar modelos de classificação capazes de distinguir entre indivíduos saudáveis, com hipotireoidismo ou com hipertireoidismo.  
-
 O presente trabalho tem como objetivo realizar um estudo de caso utilizando a base de dados \textit{Thyroid Disease Data}, disponível no Kaggle \cite{thyroid-dataset} para responder:
 
-
+\newpage
 % Research Question
 %\HRule{0.5pt}\\
 \par\noindent\rule{\textwidth}{0.4pt}
@@ -121,26 +115,22 @@ Durante o desenvolvimento deste trabalho prático, foram realizadas as seguintes
 \end{figure}
 
 \subsection{Atividade 1 - Pesquisa bibliográfica}
-
 Para fundamentar o pré-processamento e as técnicas de classificação aplicadas neste trabalho, foram utilizadas como referência diversas fontes, entre notebooks e artigos científicos. Em particular:
 
 \begin{itemize}
   \item Notebooks do Kaggle, como “XGBoost Multi-Class Classification” de EmmanuelFwerr, “Thyroid Disease Detection” de iamArslanKhalid, e “Thyroid Classification” de ZiadAbdelaziz, que fornecem exemplos práticos de análise exploratória de dados (EDA), tratamento de valores ausentes, encoding e avaliação com métricas variadas.
-  \item O artigo “\textit{Enhanced Diagnosis of Thyroid Diseases Through Advanced Machine Learning Methodologies}” (Oture, Iqbal \& Wang, 2025), que compara várias técnicas de ML e DL aplicadas ao mesmo tipo de dados, ressaltando uso de oversampling/undersampling e identificando TSH como biomarcador importante. \cite{oture2025enhanced} 
+  \item O artigo “\textit{Enhanced Diagnosis of Thyroid Diseases Through Advanced Machine Learning Methodologies}” (Oture, Iqbal \& Wang, 2025), que compara várias técnicas de ML e DL aplicadas ao mesmo tipo de dados, ressaltando uso de oversampling/undersampling e identificando TSH como biomarcador importante.\cite{oture2025enhanced}
+  \item “\textit{The novel self-stack ensemble model for thyroid disease prediction}”\cite{Ji2024_SSC_Thyroid}, que desenvolve um modelo de ensemble auto-empilhado (SSC) com técnicas de reamostragem para lidar com desbalanceamento de classes;
+  \item O trabalho de Gupta et al. (2024)\cite{Gupta2024}, que propõe o uso de Differential Evolution para otimização de hiperparâmetros e CTGAN para geração de dados sintéticos, contribuindo para lidar com o problema de desbalanceamento das classes.
+  \item O artigo “\textit{Machine Learning Techniques for the Classification of Thyroid Disease}” (Moharekar, Vadar \& Pol, 2024), que compara técnicas de classificação como regressão logística e SVM no mesmo dataset utilizado neste trabalho, alcançando desempenho competitivo.\cite{Moharekar2024} 
 \end{itemize}
-
 Essas referências ajudaram a definir escolhas no meu pipeline, como quais variáveis manter, quais métricas observar, como tratar valores ausentes e como balancear classes para evitar viés no modelo.
 
 \subsection{Atividade 2 - Seleção e Análise Exploratória Inicial dos Dados}
-
 A segunda atividade teve como objetivo compreender melhor o conjunto de dados \textit{Thyroid Disease Data}, disponível no Kaggle \cite{thyroid-dataset}, que contém informações clínicas e laboratoriais de pacientes, incluindo variáveis contínuas e categóricas. O dataset possui 9172 registros, quantidade considerada suficiente para a condução de nosso estudo, permitindo a exploração de padrões relevantes e o treinamento de modelos de aprendizado de máquina com validade estatística.
-
-
 O foco dessa etapa foi detalhar cada uma das features, entendendo o significado de seus valores e como elas poderiam impactar os diagnósticos médicos. 
-
 A Tabela \ref{tab:features} apresenta a descrição das colunas do dataset e os tipos de valores que elas contêm.
 A coluna \textbf{target} contém os diagnósticos médicos dos pacientes, que estão detalhados na Tabela \ref{tab:target}.  
-
 Neste estágio, com a ajuda da análise detalhada das features, avaliamos o conjunto de dados e concluímos que ele é suficiente e adequado para o objetivo deste trabalho, que consiste no diagnóstico automatizado de hipotireoidismo e hipertireoidismo.
 
 
@@ -231,29 +221,20 @@ T & Hormônios tireoidianos elevados \\
 \end{table}
 
 \subsection{Atividade 3 - Pré-processamento, Balanceamento dos Dados e Análise Exploratória}
-
 Após a análise inicial, iniciou-se o pré-processamento dos dados, etapa fundamental para garantir que o modelo de aprendizado de máquina pudesse ser treinado de forma eficaz. As ações realizadas incluíram:
 
 \subsubsection{Remoção de colunas redundantes e irrelevantes}
-
 O primeiro passo no pré-processamento foi analisar a relevância de cada coluna do dataset. Colunas do tipo \texttt*\_measured foram removidas, pois indicavam apenas se um exame havia sido realizado e não forneciam informação adicional relevante para o modelo. A coluna \texttt{patient\_id}, por se tratar de um identificador único, também foi descartada por não possuir utilidade preditiva. Da mesma forma, a coluna \texttt{referral\_source} foi removida, por não agregar valor significativo na previsão do diagnóstico. Por fim, a coluna \texttt{TBG} foi excluída, uma vez que apresentava uma quantidade extremamente elevada de valores nulos (8823 de 9172, aproximadamente 96\%) e não é considerada fundamental para os diagnósticos de hipotireoidismo ou hipertireoidismo.
-
 Essas remoções simplificaram o dataset, reduziram a complexidade do modelo e eliminaram colunas que poderiam introduzir ruído ou viés desnecessário.
 
 \subsubsection{Limpeza e padronização da variável target}
-
 Posteriormente, iniciamos a exploração e limpeza da variável \textbf{target}, que representa o alvo do modelo. Primeiramente, foram removidos espaços em branco e todas as letras foram padronizadas para maiúsculas, evitando erros ou perda de informação.  
-
 Em seguida, filtramos apenas os diagnósticos relevantes para o estudo: as letras que representam o hipertireoidismo (A, B, C, D), o hipotireoidismo (E, F, G, H), e os casos negativos, representados pelo caractere "\texttt{-}". Todas as demais linhas contendo outros diagnósticos foram removidas, a fim de evitar ruídos e possíveis vieses no modelo.  
-
 Por fim, a coluna \textbf{target} foi mapeada numericamente: 0 para os casos negativos, 1 para o hipotireoidismo e 2 para o hipertireoidismo, tornando-a adequada para o treinamento do modelo de classificação.
 
 \subsubsection{Tratamento de valores ausentes}
-
 Inicialmente, foram preenchidos alguns valores ausentes na coluna \texttt{sex}. Para os casos em que o sexo estava nulo, verificou-se a coluna \texttt{pregnant}: quando o valor era verdadeiro, atribuiu-se diretamente o sexo feminino, já que a condição de gravidez não seria possível para indivíduos do sexo masculino.
-
 Além disso, utilizando o parâmetro \texttt{thresh=18} na função \texttt{dropna}, de forma a remover linhas que continham mais de quatro valores ausentes (dado que havia um total de 22 atributos, incluindo a variável alvo). Esse procedimento eliminou instâncias incompletas que poderiam comprometer a qualidade do modelo, ao mesmo tempo este procedimento resultou indiretamente em uma redução da classe majoritária (0), funcionando de forma semelhante a uma técnica de \textit{undersampling} não intencional, o que contribuiu para melhorar o balanceamento do conjunto de dados.
-
 Na Figura~\ref{fig:pie-before-after}, observa-se a distribuição das classes antes e após a aplicação do filtro de valores nulos. Nota-se a queda da classe negativa (0) e a elevação proporcional das classes de hipotireoidismo (1) e hipertireoidismo (2), contribuindo para um balanceamento mais adequado do conjunto de dados.
 
 \begin{figure}[H]
@@ -268,7 +249,6 @@ Na Figura~\ref{fig:pie-before-after}, observa-se a distribuição das classes an
 \subsubsection{Análise exploratória e remoção de outliers}
 
 Para entender melhor a distribuição das variáveis numéricas em relação ao \textit{target}, foram gerados gráficos de dispersão (\textit{strip plots}) para cada atributo numérico, com cores diferenciando as classes do \textit{target} (0 = outros, 1 = hipotireoidismo, 2 = hipertireoidismo). 
-
 Os gráficos permitiram identificar valores extremos em algumas colunas, o que possibilitou a definição de limites plausíveis para cada variável. Dessa forma, foram impostas restrições nos dados numéricos para remover outliers e evitar que valores atípicos viessem a enviesar o modelo. Os limites aplicados foram:
 
 \begin{itemize}
@@ -292,9 +272,7 @@ A Figura \ref{fig:stripplots} apresenta os gráficos gerados, onde cada ponto re
 \subsubsection{Imputação de valores nulos utilizando KNN}
 
 Após a remoção de outliers e a análise das variáveis, foi realizada a imputação dos valores nulos restantes utilizando o método de KNN (\textit{K-Nearest Neighbors}). Para isso, considerou-se os 10 vizinhos mais próximos de cada registro, atribuindo pesos maiores aos vizinhos mais próximos. Esse procedimento permitiu preencher tanto os valores nulos das variáveis numéricas quanto das categóricas, preservando a estrutura dos dados.
-
 Antes da aplicação do KNN, foi necessário transformar as variáveis categóricas, que possuíam valores binários como ``t''/``f'' ou ``0''/``1'', para um formato adequado, garantindo que o algoritmo pudesse processá-las corretamente.
-
 Para analisar o impacto da imputação, foram geradas curvas de distribuição das principais variáveis contínuas (\textbf{TSH}, \textbf{T3}, \textbf{TT4}, \textbf{T4U}, \textbf{FTI}) antes e depois do KNN. As figuras \ref{fig:FTI_distrib} a \ref{fig:T4U_distrib} apresentam essas distribuições. Observa-se que, embora a curva do dado original tenha ficado ligeiramente abaixo da curva após a imputação, o formato geral das distribuições se manteve, indicando que a imputação preservou a característica dos dados sem introduzir distorções significativas.
 
 \begin{figure}[H]
@@ -429,19 +407,21 @@ A matriz de confusão e o relatório de classificação mostraram que o modelo c
 
 Em resumo, o modelo XGBoost com ajuste de pesos para as classes minoritárias apresentou resultados satisfatórios para a classificação automatizada das doenças da tireoide, com a importância das features condizente com achados clínicos.
 
-%\section{Desafios}
+\section{Desafios Encontrados}
+
+Durante o desenvolvimento deste trabalho, alguns desafios se destacaram ao longo das etapas. 
+O primeiro desafio esteve relacionado à definição do escopo do projeto e à escolha de um conjunto de dados adequado. Foi necessário um tempo considerável para analisar diferentes bases disponíveis até encontrar o \textit{Thyroid Disease Data}, disponível no Kaggle, que atendia aos requisitos do tema escolhido e possuía informações clínicas e laboratoriais relevantes para o diagnóstico de doenças da tireoide.  
+Outro desafio importante foi o estudo das técnicas de pré-processamento e a compreensão da ordem correta em que cada uma deveria ser aplicada. Etapas como a remoção de colunas redundantes, tratamento de valores ausentes com \textit{KNN-Imputer}, filtragem de outliers e balanceamento de classes com \textit{SMOTE} exigiram análise detalhada e testes práticos para garantir que o conjunto de dados final fosse consistente e representativo.  
+Além disso, compreender os modelos de classificação e, em particular, o funcionamento do algoritmo XGBoost também representou uma dificuldade inicial. Foi necessário estudar suas bibliotecas, funções e hiperparâmetros de entrada, bem como explorar técnicas complementares como o uso de \textit{GridSearch} para otimização e o cálculo de \textit{sample\_weight} para penalizar erros em classes minoritárias.  
+Apesar dessas dificuldades, cada obstáculo contribuiu para um aprendizado significativo, tanto em relação ao uso das ferramentas de aprendizado de máquina quanto na aplicação prática de conceitos de ciência de dados em um contexto real de diagnóstico médico.
 
 
 \section{Conclusão}
 
 O presente estudo teve como objetivo investigar como técnicas de aprendizado de máquina, em especial o XGBoost, podem auxiliar no diagnóstico automatizado de doenças da tireoide, considerando hipotireoidismo e hipertireoidismo, a partir de exames laboratoriais.
-
 Durante o desenvolvimento do trabalho, foi possível observar que o conjunto de dados \textit{Thyroid Disease Data} do Kaggle, contendo informações clínicas e laboratoriais de 9.172 pacientes, era suficiente e adequado para treinar um modelo de classificação confiável. Por meio de uma etapa sistemática de pré-processamento, que incluiu limpeza de dados, tratamento de valores nulos, padronização e balanceamento das classes com SMOTE, garantiu-se que o modelo fosse treinado com dados de qualidade e representativos.
-
 A implementação do XGBoost, aliada à busca de hiperparâmetros com GridSearch e ao uso de pesos de amostra (\textit{sample\_weight}) para lidar com o desbalanceamento das classes, permitiu identificar corretamente padrões relevantes nos exames laboratoriais. Observou-se que, após aplicar o \textit{sample\_weight}, a importância das variáveis no modelo passou a refletir melhor os achados clínicos descritos na literatura: o TSH tornou-se a variável mais relevante, alinhando-se ao que é considerado um biomarcador sensível para disfunções tireoidianas.
-
 Os resultados obtidos, avaliados por métricas como acurácia, recall, f1-score e análise da matriz de confusão, demonstram que o XGBoost foi capaz de distinguir de forma eficiente entre pacientes saudáveis, hipotireoideos e hipertireoideos. Além disso, a visualização das importâncias das features fornece uma interpretação útil para profissionais de saúde, mostrando quais exames contribuem mais para o diagnóstico automatizado.
-
 Portanto, conclui-se que técnicas de aprendizado de máquina, especialmente o XGBoost, são ferramentas promissoras para o apoio ao diagnóstico de doenças da tireoide. Elas permitem transformar dados laboratoriais em previsões confiáveis, auxiliando médicos a identificar disfunções tireoidianas de forma mais rápida e objetiva, e potencialmente melhorando o cuidado clínico.
 
 \newpage
