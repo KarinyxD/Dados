@@ -1,9 +1,6 @@
 *.txt
 __pycache__
 latex/*
-decisiontree.py
-decisiontree2.py:w
-
 
 # Exceto:
 !latex/main.tex
