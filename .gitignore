@@ -1,5 +1,5 @@
-*.xlsx
 *.txt
+__pycache__
 latex/*
 decisiontree.py
 decisiontree2.py:w
